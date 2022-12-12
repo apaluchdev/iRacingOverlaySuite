@@ -128,7 +128,7 @@ namespace Examples
                 .Append("DeltaTime: ").Append(e.DeltaTime.ToString().PadRight(padding))
                 .ToString();
 
-            gfx.ClearScene(_brushes["background"]);
+            //gfx.ClearScene(_brushes["transparent"]);
 
             gfx.DrawTextWithBackground(_fonts["consolas"], _brushes["green"], _brushes["black"], 58, 20, infoText);
 

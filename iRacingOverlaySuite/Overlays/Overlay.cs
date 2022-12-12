@@ -12,8 +12,9 @@ namespace iRacingOverlaySuite.Overlays
     public class Overlay : IDisposable
     {
         private readonly GraphicsWindow _window;
-
+        private List<Action<Graphics>> DrawActions = new List<Action<Graphics>>();
         private const string IRACING_WINDOW_NAME = "iRacing.com Simulator";
+        private bool _attachedToWindow = false;
 
         protected readonly Dictionary<string, SolidBrush> _brushes;
         protected readonly Dictionary<string, Font> _fonts;
@@ -21,10 +22,9 @@ namespace iRacingOverlaySuite.Overlays
 
         protected Geometry _gridGeometry;
         protected Rectangle _gridBounds;
-
         protected IRData IRData = new IRData();
 
-        private List<Action<Graphics>> DrawActions = new List<Action<Graphics>>();
+        public event EventHandler SetupCompleted;
 
         public Overlay(int x, int y, int width, int height)
         {
@@ -57,7 +57,7 @@ namespace iRacingOverlaySuite.Overlays
         {
             AttachToWindow();
 
-            var gfx = e.Graphics;
+            var gfx = e.Graphics;          
 
             if (e.RecreateResources)
             {
@@ -68,10 +68,13 @@ namespace iRacingOverlaySuite.Overlays
             _brushes["black"] = gfx.CreateSolidBrush(0, 0, 0);
             _brushes["white"] = gfx.CreateSolidBrush(255, 255, 255);
             _brushes["red"] = gfx.CreateSolidBrush(255, 0, 0);
+            _brushes["yellow"] = gfx.CreateSolidBrush(255, 255, 0, 0.5f);
             _brushes["green"] = gfx.CreateSolidBrush(0, 255, 0);
             _brushes["blue"] = gfx.CreateSolidBrush(0, 0, 255);
-            _brushes["background"] = gfx.CreateSolidBrush(0x33, 0x36, 0x3F);
+            _brushes["background"] = gfx.CreateSolidBrush(0x33, 0x36, 0x3F, 0.00f);
+            _brushes["backgroundGray"] = gfx.CreateSolidBrush(0x33, 0x36, 0x3F, 0.8f);
             _brushes["grid"] = gfx.CreateSolidBrush(255, 255, 255, 0.2f);
+            _brushes["transparent"] = gfx.CreateSolidBrush(255, 255, 255, 1f);
             _brushes["random"] = gfx.CreateSolidBrush(0, 0, 0);
 
             if (e.RecreateResources) return;
@@ -97,6 +100,8 @@ namespace iRacingOverlaySuite.Overlays
             }
 
             _gridGeometry.Close();
+
+            SetupCompleted?.Invoke(this, e);
         }
 
         #endregion
@@ -110,7 +115,12 @@ namespace iRacingOverlaySuite.Overlays
         {
             var gfx = e.Graphics;
 
-            gfx.ClearScene(_brushes["background"]);
+            // If we are not attached to the window, attempt to do so every 5 seconds
+            if (!_attachedToWindow)
+            {
+                if (DateTime.Now.Second % 5 == 0)
+                    AttachToWindow();
+            }
 
             IRData.ProcessData();
 
@@ -138,12 +148,15 @@ namespace iRacingOverlaySuite.Overlays
 
             if (windowHandle != IntPtr.Zero)
             {
-                RECT rect = new RECT();
+                // TODO - Allow for moving overlays via a click-drag
                 POINT lpPoint;
                 Win32Helper.GetCursorPos(out lpPoint);
+
+                RECT rect = new RECT();
                 Win32Helper.GetWindowRect(windowHandle, out rect);
-                var left = (Math.Abs(rect.right + rect.left) / 2) - (_window.Width / 2); // + _offsetX;
-                var top = (((rect.top + rect.bottom) / 2) - _window.Height); // + _offsetY;
+
+                var left = (Math.Abs(rect.right + rect.left) / 2) - (_window.Width / 2);
+                var top = (((rect.top + rect.bottom) / 2) - _window.Height);
 
                 _window.Move(left, top);
             }
