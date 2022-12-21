@@ -13,6 +13,7 @@ namespace iRacingOverlaySuite.Overlays
     {
         private readonly GraphicsWindow _window;
         private List<Action<Graphics>> DrawActions = new List<Action<Graphics>>();
+
         private const string IRACING_WINDOW_NAME = "iRacing.com Simulator";
         private bool _attachedToWindow = false;
 
@@ -20,11 +21,12 @@ namespace iRacingOverlaySuite.Overlays
         protected readonly Dictionary<string, Font> _fonts;
         protected readonly Dictionary<string, Image> _images;
 
-        protected Geometry _gridGeometry;
-        protected Rectangle _gridBounds;
         protected IRData IRData = new IRData();
 
         public event EventHandler SetupCompleted;
+
+        public int WindowXPos { get; private set; }
+        public int WindowYPos { get; private set; }
 
         public Overlay(int x, int y, int width, int height)
         {
@@ -41,10 +43,13 @@ namespace iRacingOverlaySuite.Overlays
 
             _window = new GraphicsWindow(x, y, width, height, gfx)
             {
-                FPS = 60,
+                FPS = 50,
                 IsTopmost = true,
                 IsVisible = true,
             };
+
+            WindowXPos = _window.X;
+            WindowYPos = _window.Y;
 
             _window.DestroyGraphics += _window_DestroyGraphics;
             _window.DrawGraphics += _window_DrawGraphics;
@@ -67,6 +72,7 @@ namespace iRacingOverlaySuite.Overlays
 
             _brushes["black"] = gfx.CreateSolidBrush(0, 0, 0);
             _brushes["white"] = gfx.CreateSolidBrush(255, 255, 255);
+            _brushes["transparentWhite"] = gfx.CreateSolidBrush(255, 255, 255,0.5f);
             _brushes["red"] = gfx.CreateSolidBrush(255, 0, 0);
             _brushes["yellow"] = gfx.CreateSolidBrush(255, 255, 0, 0.5f);
             _brushes["green"] = gfx.CreateSolidBrush(0, 255, 0);
@@ -74,32 +80,13 @@ namespace iRacingOverlaySuite.Overlays
             _brushes["background"] = gfx.CreateSolidBrush(0x33, 0x36, 0x3F, 0.00f);
             _brushes["backgroundGray"] = gfx.CreateSolidBrush(0x33, 0x36, 0x3F, 0.8f);
             _brushes["grid"] = gfx.CreateSolidBrush(255, 255, 255, 0.2f);
-            _brushes["transparent"] = gfx.CreateSolidBrush(255, 255, 255, 1f);
+            _brushes["transparent"] = gfx.CreateSolidBrush(0, 0, 0, 0.25f);
             _brushes["random"] = gfx.CreateSolidBrush(0, 0, 0);
 
             if (e.RecreateResources) return;
 
             _fonts["arial"] = gfx.CreateFont("Arial", 12);
             _fonts["consolas"] = gfx.CreateFont("Consolas", 14);
-
-            _gridBounds = new Rectangle(20, 60, gfx.Width - 20, gfx.Height - 20);
-            _gridGeometry = gfx.CreateGeometry();
-
-            for (float x = _gridBounds.Left; x <= _gridBounds.Right; x += 20)
-            {
-                var line = new Line(x, _gridBounds.Top, x, _gridBounds.Bottom);
-                _gridGeometry.BeginFigure(line);
-                _gridGeometry.EndFigure(false);
-            }
-
-            for (float y = _gridBounds.Top; y <= _gridBounds.Bottom; y += 20)
-            {
-                var line = new Line(_gridBounds.Left, y, _gridBounds.Right, y);
-                _gridGeometry.BeginFigure(line);
-                _gridGeometry.EndFigure(false);
-            }
-
-            _gridGeometry.Close();
 
             SetupCompleted?.Invoke(this, e);
         }
@@ -160,6 +147,9 @@ namespace iRacingOverlaySuite.Overlays
 
                 _window.Move(left, top);
             }
+
+            WindowXPos = _window.X;
+            WindowYPos = _window.Y;
         }
 
         ~Overlay()

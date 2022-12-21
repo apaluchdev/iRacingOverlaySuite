@@ -24,6 +24,8 @@ namespace iRacingOverlaySuite
 
         public CarLeftRight CarLeftRight;
 
+        public double SessionTime;
+
         #region
 
         private IRacingSDK sdk;
@@ -63,10 +65,11 @@ namespace iRacingOverlaySuite
                 // Check if we can find the sim
                 if (IsConnected)
                 {
-
-                    Brake = (float) sdk.GetData("Brake");
-                    Throttle = (float)sdk.GetData("Throttle");
+                    Data data = sdk.GetData();
+                    Brake = (float)(sdk.GetData("Brake") ?? 0);
+                    Throttle = (float)(sdk.GetData("Throttle") ?? 0);
                     CarLeftRight = (CarLeftRight)sdk.GetData("CarLeftRight");
+                    SessionTime = (double)(sdk.GetData("SessionTime") ?? -1);
 
                     // Parse out your own driver Id
                     if (DriverId == -1)

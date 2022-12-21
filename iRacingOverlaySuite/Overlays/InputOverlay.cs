@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media.Media3D;
 using System.Xml.Serialization;
 using YamlDotNet.RepresentationModel;
@@ -23,7 +24,9 @@ namespace iRacingOverlaySuite.Overlays
 
         public Func<float> GetBrake;
         public Func<float> GetThrottle;
+        public Func<double> GetSessionTime;
         public Func<CarLeftRight> GetCarLeftRight;
+        public Dictionary<double, float> TimeBrakeValuePairs = new Dictionary<double, float>();
 
         int Margin = 2;
 
@@ -36,6 +39,7 @@ namespace iRacingOverlaySuite.Overlays
 
             GetBrake = () => IRData.Brake;
             GetThrottle = () => IRData.Throttle;
+            GetSessionTime = () => Math.Round(IRData.SessionTime,4);
 
             this.SetupCompleted += InputOverlay_SetupCompleted;
         }
@@ -49,15 +53,36 @@ namespace iRacingOverlaySuite.Overlays
         {
             AddDrawAction((gfx) => gfx.ClearScene(_brushes["background"]));
             AddDrawAction(DrawPercentageBar(Width - Margin, Height - Margin, -20, Height, _brushes["green"], GetThrottle));
-            AddDrawAction(DrawPercentageBar(X + Margin, Height - Margin, 20, Height, _brushes["red"], GetBrake));
+            AddDrawAction(DrawPercentageBar(X /* X not needed, remove TODO */ + Margin, Height - Margin, 20, Height, _brushes["red"], GetBrake));
+            //AddDrawAction(DrawInputGraph(Width/2 - 150, Height, GetSessionTime, GetBrake));
         }
 
-        private void DrawLeftTriangle(Graphics gfx, int x, int y)
+        private Action<Graphics> DrawInputGraph(int x, int y, Func<double> getSessionTime, Func<float> getBrakePercentage)
         {
-            Point pointA = new Point(x, y + (Height / 2));
-            Point pointB = new Point(x + (Width / 2) - 5, y);
-            Point pointC = new Point(x + (Width / 2) - 5, y + Height);
-            gfx.DrawTriangle(_brushes["red"], new Triangle(pointA, pointB, pointC), 5);
+            double sessionTime;
+
+            Action<Graphics> drawAction = (gfx) => {
+
+                sessionTime = getSessionTime();
+                
+                if (sessionTime == 0) return;
+
+                TimeBrakeValuePairs.Add(getSessionTime(), getBrakePercentage());
+
+                TimeBrakeValuePairs = TimeBrakeValuePairs.Where(x => sessionTime - x.Key < 3).ToDictionary(x => x.Key, x => x.Value);
+
+                // Say graph has X width of 300, our time values are between 0 - 3 seconds old
+                // An 'older' time value of 2.5 is 83% of 3. So display this time value would have a x value 83% of 300 
+                var res = TimeBrakeValuePairs.Select(pair => new KeyValuePair<double, float>((int) ((sessionTime - pair.Key) / 3 * 300), pair.Value));
+
+                foreach (var item in res)
+                {
+                    Circle c = new Circle(300 - (float) item.Key+x, -y*item.Value+y, 1);
+                    gfx.DrawCircle(_brushes["red"], c, 2);
+                }
+            };
+
+            return drawAction;
         }
 
         public Action<Graphics> DrawPercentageBar(int x, int y, int width, int height, IBrush color, Func<float> getPercentage)

@@ -24,6 +24,7 @@ namespace iRacingOverlaySuite
 
         static void Begin()
         {
+            //RunInputGraphOverlay();
             RunInputOverlay();
             RunProximityOverlay();
 
@@ -40,6 +41,11 @@ namespace iRacingOverlaySuite
         {
             ProximityOverlay proximityOverlay = new ProximityOverlay();
             Task.Run(() => proximityOverlay.Run());
+        }
+        private static void RunInputGraphOverlay()
+        {
+            InputGraphOverlay inputGraphOverlay = new InputGraphOverlay();
+            Task.Run(() => inputGraphOverlay.Run());
         }
     }
 }
