@@ -27,6 +27,7 @@ namespace iRacingOverlaySuite
             //RunInputGraphOverlay();
             RunInputOverlay();
             RunProximityOverlay();
+            //RunBrakingMarkerOverlay();
 
             Console.ReadLine();
         }
@@ -42,10 +43,17 @@ namespace iRacingOverlaySuite
             ProximityOverlay proximityOverlay = new ProximityOverlay();
             Task.Run(() => proximityOverlay.Run());
         }
+
         private static void RunInputGraphOverlay()
         {
             InputGraphOverlay inputGraphOverlay = new InputGraphOverlay();
             Task.Run(() => inputGraphOverlay.Run());
+        }
+
+        private static void RunBrakingMarkerOverlay()
+        {
+            BrakingMarkerOverlay brakingMarkerOverlay = new BrakingMarkerOverlay();
+            Task.Run(() => brakingMarkerOverlay.Run());
         }
     }
 }

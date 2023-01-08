@@ -88,25 +88,5 @@ namespace iRacingOverlaySuite.Overlays
             Point pointC = new Point(Width - offsetX - (Width / 6), Y + Height - Margin);
             gfx.DrawTriangle(_brushes["yellow"], new Triangle(pointA, pointB, pointC), 5);
         }
-
-        public Action<Graphics> DrawPercentageBar(int x, int y, int width, int height, IBrush color, Func<float> getPercentage)
-        {
-            Action<Graphics> drawAction = (gfx) => {
-                // Dimensions of inner container that changes height depending on the percentage
-                Rectangle filling = Rectangle.Create(/* Top Left X */ x, /* Top Left Y */ y, width, -((height - Margin) * getPercentage()));
-                // Container dimensions
-                Rectangle container = Rectangle.Create(/* Top Left X */ x, /* Top Left Y */ y, width, -(height - Margin));
-
-                if (getPercentage() > 0)
-                {
-                    gfx.DrawBox2D(_brushes["black"], color, filling, 2);
-                }
-
-                gfx.DrawRectangle(_brushes["black"], container, 2);
-
-            };
-
-            return drawAction;
-        }
     }
 }
