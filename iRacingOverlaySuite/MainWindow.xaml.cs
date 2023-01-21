@@ -29,6 +29,8 @@ namespace iRacingOverlaySuite
             RunProximityOverlay();
             //RunBrakingMarkerOverlay();
 
+            // IDEA - Use Azure service bus to send session info (laptimes, temps, etc.) to create a more detailed results page.
+
             Console.ReadLine();
         }
 

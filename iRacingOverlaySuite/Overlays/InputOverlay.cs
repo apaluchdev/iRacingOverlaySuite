@@ -54,6 +54,7 @@ namespace iRacingOverlaySuite.Overlays
             AddDrawAction((gfx) => gfx.ClearScene(_brushes["background"]));
             AddDrawAction(DrawPercentageBar(Width - Margin, Height - Margin, -20, Height, _brushes["green"], GetThrottle));
             AddDrawAction(DrawPercentageBar(X /* X not needed, remove TODO */ + Margin, Height - Margin, 20, Height, _brushes["red"], GetBrake));
+            AddDrawAction(DrawBrakePercentage(Width, Height));
             //AddDrawAction(DrawInputGraph(Width/2 - 150, Height, GetSessionTime, GetBrake));
         }
 
@@ -80,6 +81,16 @@ namespace iRacingOverlaySuite.Overlays
                     Circle c = new Circle(300 - (float) item.Key+x, -y*item.Value+y, 1);
                     gfx.DrawCircle(_brushes["red"], c, 2);
                 }
+            };
+
+            return drawAction;
+        }
+
+        public Action<Graphics> DrawBrakePercentage(int width, int height)
+        {
+            Action<Graphics> drawAction = (gfx) =>
+            {
+                gfx.DrawText(_fonts["consolas"], 30, _brushes["white"], (width / 2) - 10, height - 50, ((int) (GetBrake()*100)).ToString());
             };
 
             return drawAction;

@@ -57,19 +57,6 @@ namespace iRacingOverlaySuite
 
         public IRData()
         {
-
-            //var memMap = MemoryMappedFile.CreateFromFile(@"C:\Users\Adrian\Documents\iRacing\telemetry\toyotagr86_limerock 2019 gp 2022-12-29 19-04-58.ibt");
-            
-            //sdkFile = new IRacingSDK(memMap.CreateViewAccessor());
-            //var myData = sdkFile.GetSerializedData();
-
-
-            //var fileMapView = memMap.CreateViewAccessor();
-            //var varHeaderSize = Marshal.SizeOf(typeof(VarHeader));
-
-            //IRacingDataModel data = sdkFile.GetSerializedData();
-            //var viewAccessor = memMap.CreateViewAccessor();
-
             sdk = new IRacingSDK();
             sdk.OnConnected += Sdk_OnConnected;
             sdk.OnDisconnected += Sdk_OnDisconnected;
@@ -95,7 +82,7 @@ namespace iRacingOverlaySuite
                 int lastUpdate = -1;
 
                 // Check if we can find the sim
-                if (IsConnected)
+                if (IsConnected /* Check if iRacing process is open as well */)
                 {
                     Data data = sdk.GetData();
                     Brake = (float)(sdk.GetData("Brake") ?? 0);
