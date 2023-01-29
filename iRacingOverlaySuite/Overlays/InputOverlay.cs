@@ -51,10 +51,19 @@ namespace iRacingOverlaySuite.Overlays
 
         public void CreateInputOverlay()
         {
+            // TODO - Add numeric indicators along the percentage bars
             AddDrawAction((gfx) => gfx.ClearScene(_brushes["background"]));
+
+            // Throttle bar
             AddDrawAction(DrawPercentageBar(Width - Margin, Height - Margin, -20, Height, _brushes["green"], GetThrottle));
+            // Brake bar
             AddDrawAction(DrawPercentageBar(X /* X not needed, remove TODO */ + Margin, Height - Margin, 20, Height, _brushes["red"], GetBrake));
-            AddDrawAction(DrawBrakePercentage(Width, Height));
+            
+            // Text percentages
+            AddDrawAction(DrawPercentageText(Width - Margin, Height - Margin, -45, Height));
+            AddDrawAction(DrawPercentageText(X + Margin, Height - Margin, 20, Height));
+            
+            //AddDrawAction(DrawBrakePercentage(Width, Height));
             //AddDrawAction(DrawInputGraph(Width/2 - 150, Height, GetSessionTime, GetBrake));
         }
 
@@ -96,6 +105,18 @@ namespace iRacingOverlaySuite.Overlays
             return drawAction;
         }
 
+        public Action<Graphics> DrawPercentageText(int x, int y, int width, int height)
+        {
+            Action<Graphics> drawAction = (gfx) =>
+            {
+                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, Height / 2 - (Height / 4)), "75%");
+                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, Height / 2), "50%");
+                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, Height / 2 + (Height / 4)), "25%");
+            };
+
+            return drawAction;
+        }
+
         public Action<Graphics> DrawPercentageBar(int x, int y, int width, int height, IBrush color, Func<float> getPercentage)
         {
             Action<Graphics> drawAction = (gfx) => {
@@ -108,6 +129,7 @@ namespace iRacingOverlaySuite.Overlays
                 {
                     gfx.DrawBox2D(_brushes["black"], color, filling, 2);
                 }
+
 
                 gfx.DrawRectangle(_brushes["black"], container, 2);
             };
