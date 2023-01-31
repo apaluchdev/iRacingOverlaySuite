@@ -77,12 +77,12 @@ namespace iRacingOverlaySuite.Overlays
                 foreach (var pair in _images) pair.Value.Dispose();
             }
 
-            _brushes["black"] = gfx.CreateSolidBrush(0, 0, 0);
+            _brushes["black"] = gfx.CreateSolidBrush(0, 0, 0, 0.25f);
             _brushes["white"] = gfx.CreateSolidBrush(255, 255, 255);
-            _brushes["transparentWhite"] = gfx.CreateSolidBrush(255, 255, 255,0.5f);
-            _brushes["red"] = gfx.CreateSolidBrush(255, 0, 0);
+            _brushes["transparentWhite"] = gfx.CreateSolidBrush(255, 255, 255,0.75f);
+            _brushes["red"] = gfx.CreateSolidBrush(255, 0, 0, 0.5f);
             _brushes["yellow"] = gfx.CreateSolidBrush(255, 255, 0, 0.5f);
-            _brushes["green"] = gfx.CreateSolidBrush(0, 255, 0);
+            _brushes["green"] = gfx.CreateSolidBrush(0, 255, 0, 0.25f);
             _brushes["blue"] = gfx.CreateSolidBrush(0, 0, 255);
             _brushes["background"] = gfx.CreateSolidBrush(0x33, 0x36, 0x3F, 0.00f);
             _brushes["backgroundGray"] = gfx.CreateSolidBrush(0x33, 0x36, 0x3F, 0.8f);
@@ -153,9 +153,9 @@ namespace iRacingOverlaySuite.Overlays
                 POINT lpPoint;
                 Win32Helper.GetCursorPos(out lpPoint);
 
-                RECT rect = new RECT();
+                RECT rect;
                 Win32Helper.GetWindowRect(windowHandle, out rect);
-
+                
                 var left = ((Math.Abs(rect.right + rect.left) / 2) - (_window.Width / 2)) + _window.X;
                 var top = (((rect.top + rect.bottom) / 2) - _window.Height) + _window.Y;
 

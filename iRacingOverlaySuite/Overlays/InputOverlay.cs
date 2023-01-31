@@ -107,11 +107,13 @@ namespace iRacingOverlaySuite.Overlays
 
         public Action<Graphics> DrawPercentageText(int x, int y, int width, int height)
         {
+            height -= 10;
+
             Action<Graphics> drawAction = (gfx) =>
             {
-                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, Height / 2 - (Height / 4)), "75%");
-                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, Height / 2), "50%");
-                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, Height / 2 + (Height / 4)), "25%");
+                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, height / 2 - (height / 4) - 5), "75%");
+                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, height / 2), "50%");
+                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, height / 2 + (height / 4)), "25%");
             };
 
             return drawAction;
