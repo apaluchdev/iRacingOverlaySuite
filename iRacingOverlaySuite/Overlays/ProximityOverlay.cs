@@ -1,29 +1,18 @@
 ﻿using GameOverlay.Drawing;
 using irsdkSharp.Serialization.Enums.Fastest;
 using System;
+using System.Collections.Generic;
 
 namespace iRacingOverlaySuite.Overlays
 {
     public class ProximityOverlay : Overlay, IDisposable
     {
-        int X;
-        int Y;
-        int Height;
-        int Width;
-
-        public Func<CarLeftRight> GetCarLeftRight;
+        public Func<CarLeftRight>? GetCarLeftRight;
 
         int Margin = 5;
 
-        public ProximityOverlay(int x = 0, int y = 0, int width = 960, int height = 100) : base(x, y, width, height)
+        public ProximityOverlay(int x, int y, Location location, int width, int height) : base(x, y, location, width, height)
         {
-            X = x;
-            Y = y;
-            Height = height;
-            Width = width;
-
-            GetCarLeftRight = () => IRData.CarLeftRight;
-
             this.SetupCompleted += ProximityOverlay_SetupCompleted;
         }
 
@@ -34,14 +23,20 @@ namespace iRacingOverlaySuite.Overlays
 
         public void CreateProximityOverlay()
         {
-            AddDrawAction((gfx) => gfx.ClearScene(_brushes["background"]));
-            AddDrawAction(DrawCarProximityIndicator(X, Y, GetCarLeftRight));
+            AddDrawActions(new List<Action<Graphics>>()
+            {
+                (gfx) => gfx.ClearScene(_brushes["background"]),
+                //(gfx) => gfx.DrawCircle(_brushes["transparentBlack"], 0, 0, 1, 5000),
+                DrawCarProximityIndicator(GameWindow.width / 2, 0)
+            });
         }
 
-        public Action<Graphics> DrawCarProximityIndicator(int x, int y, Func<CarLeftRight> getCarLeftRight)
+        public Action<Graphics> DrawCarProximityIndicator(int x, int y)
         {
-            Action<Graphics> drawAction = (gfx) => {
-                switch (getCarLeftRight())
+            Action<Graphics> drawAction = (gfx) =>
+            {
+                var carLeftRight = IRData.iRacingData?.CarLeftRight ?? 0;
+                switch ((CarLeftRight) carLeftRight)
                 {
                     case (CarLeftRight.LROff):
                         break;
@@ -75,17 +70,17 @@ namespace iRacingOverlaySuite.Overlays
 
         private void DrawLeftTriangle(Graphics gfx, int offsetX = 0, int offsetY = 0)
         {
-            Point pointA = new Point(X + offsetX, Y + (Height / 2));
-            Point pointB = new Point(X + offsetX + (Width / 6) - 5, Y + Margin);
-            Point pointC = new Point(X + offsetX + (Width / 6) - 5, Y + Height - Margin);
+            Point pointA = new Point(offsetX + Margin, Height / 2);
+            Point pointB = new Point(offsetX + (Width / 6) - 5 + Margin, Margin);
+            Point pointC = new Point(offsetX + (Width / 6) - 5 + Margin, Height - Margin);
             gfx.DrawTriangle(_brushes["yellow"], new Triangle(pointA, pointB, pointC), 5);
         }
 
         private void DrawRightTriangle(Graphics gfx, int offsetX = 0, int offsetY = 0)
         {
-            Point pointA = new Point(Width - offsetX - Margin, Y + (Height / 2));
-            Point pointB = new Point(Width - offsetX - (Width / 6), Y + Margin);
-            Point pointC = new Point(Width - offsetX - (Width / 6), Y + Height - Margin);
+            Point pointA = new Point(Width - offsetX - Margin, Height / 2);
+            Point pointB = new Point(Width - offsetX - (Width / 6), Margin);
+            Point pointC = new Point(Width - offsetX - (Width / 6), Height - Margin);
             gfx.DrawTriangle(_brushes["yellow"], new Triangle(pointA, pointB, pointC), 5);
         }
     }

@@ -1,46 +1,18 @@
 ﻿using GameOverlay.Drawing;
-using GameOverlay.Windows;
-using irsdkSharp.Serialization.Enums.Fastest;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
-using System.Windows.Controls.Primitives;
-using System.Windows.Media.Media3D;
-using System.Xml.Serialization;
-using YamlDotNet.RepresentationModel;
 
 namespace iRacingOverlaySuite.Overlays
 {
     public class InputOverlay : Overlay, IDisposable
     {
-        int X;
-        int Y;
-        int Height;
-        int Width;
+        Func<float>? GetBrake;
+        Func<float>? GetThrottle;
 
-        public Func<float> GetBrake;
-        public Func<float> GetThrottle;
-        public Func<double> GetSessionTime;
-        public Func<CarLeftRight> GetCarLeftRight;
-        public Dictionary<double, float> TimeBrakeValuePairs = new Dictionary<double, float>();
+        const int BAR_WIDTH = 25;
 
-        int Margin = 2;
-
-        public InputOverlay(int x = 0, int y = 0, int width = 600, int height = 200) : base(x, y, width, height)
+        public InputOverlay(int x, int y, Location location, int width, int height) : base(x, y, location, width, height)
         {
-            X = x;
-            Y = y;
-            Height = height;
-            Width = width;
-
-            GetBrake = () => IRData.Brake;
-            GetThrottle = () => IRData.Throttle;
-            GetSessionTime = () => Math.Round(IRData.SessionTime,4);
-
             this.SetupCompleted += InputOverlay_SetupCompleted;
         }
 
@@ -51,92 +23,88 @@ namespace iRacingOverlaySuite.Overlays
 
         public void CreateInputOverlay()
         {
-            // TODO - Add numeric indicators along the percentage bars
-            AddDrawAction((gfx) => gfx.ClearScene(_brushes["background"]));
+            const int GAP_SIZE = 400;
 
-            // Throttle bar
-            AddDrawAction(DrawPercentageBar(Width - Margin, Height - Margin, -20, Height, _brushes["green"], GetThrottle));
-            // Brake bar
-            AddDrawAction(DrawPercentageBar(X /* X not needed, remove TODO */ + Margin, Height - Margin, 20, Height, _brushes["red"], GetBrake));
-            
-            // Text percentages
-            AddDrawAction(DrawPercentageText(Width - Margin, Height - Margin, -45, Height));
-            AddDrawAction(DrawPercentageText(X + Margin, Height - Margin, 20, Height));
-            
-            //AddDrawAction(DrawBrakePercentage(Width, Height));
-            //AddDrawAction(DrawInputGraph(Width/2 - 150, Height, GetSessionTime, GetBrake));
+            GetBrake = () => IRData.iRacingData?.Brake ?? 0;
+            GetThrottle = () => IRData.iRacingData?.Throttle ?? 0;
+
+            AddDrawActions(new List<Action<Graphics>>()
+            {
+                (gfx) => gfx.ClearScene(_brushes["background"]),
+                //(gfx) => gfx.DrawCircle(_brushes["transparentBlack"], 0, 0, 1, 5000),
+
+                // Brake
+                DrawPercentageBar(Width / 2 - (BAR_WIDTH / 2), 0, _brushes["transparentRed"], GetBrake),
+                DrawPercentageText(Width / 2 - (BAR_WIDTH / 2), 0),
+
+                //DrawPercentageBar(Width / 2 - GAP_SIZE, 0, _brushes["transparentRed"], GetBrake),
+                //DrawPercentageBar(Width / 2 + GAP_SIZE - BAR_WIDTH, 0, _brushes["transparentGreen"], GetThrottle),
+
+                //DrawPercentageText(Width / 2 - GAP_SIZE, 0),
+                //DrawPercentageText(Width / 2 + GAP_SIZE - BAR_WIDTH, 0),
+
+                //DrawABS((Width / 2) - 70, 0),
+            });
         }
 
-        private Action<Graphics> DrawInputGraph(int x, int y, Func<double> getSessionTime, Func<float> getBrakePercentage)
+        public Action<Graphics> DrawABS(int x, int y)
         {
-            double sessionTime;
-
-            Action<Graphics> drawAction = (gfx) => {
-
-                sessionTime = getSessionTime();
-                
-                if (sessionTime == 0) return;
-
-                TimeBrakeValuePairs.Add(getSessionTime(), getBrakePercentage());
-
-                TimeBrakeValuePairs = TimeBrakeValuePairs.Where(x => sessionTime - x.Key < 3).ToDictionary(x => x.Key, x => x.Value);
-
-                // Say graph has X width of 300, our time values are between 0 - 3 seconds old
-                // An 'older' time value of 2.5 is 83% of 3. So display this time value would have a x value 83% of 300 
-                var res = TimeBrakeValuePairs.Select(pair => new KeyValuePair<double, float>((int) ((sessionTime - pair.Key) / 3 * 300), pair.Value));
-
-                foreach (var item in res)
+            Action<Graphics> drawAction = (gfx) =>
+            {
+                if (IRData.iRacingData?.BrakeABSactive ?? false)
                 {
-                    Circle c = new Circle(300 - (float) item.Key+x, -y*item.Value+y, 1);
-                    gfx.DrawCircle(_brushes["red"], c, 2);
+                    gfx.DrawImage(ABSOn, x, 0, 0.5f);
                 }
             };
 
             return drawAction;
         }
 
-        public Action<Graphics> DrawBrakePercentage(int width, int height)
+        public Action<Graphics> DrawPercentageText(int x, int y)
         {
             Action<Graphics> drawAction = (gfx) =>
             {
-                gfx.DrawText(_fonts["consolas"], 30, _brushes["white"], (width / 2) - 10, height - 50, ((int) (GetBrake()*100)).ToString());
+                gfx.DrawLine(_brushes["transparentWhite"], new Line(x, y + (Height / 4), x + BAR_WIDTH, y + (Height / 4)), 1);
+                gfx.DrawText(_fonts["consolas"], 11, _brushes["white"], x + 30, y + (Height / 4), "75%");
+
+                gfx.DrawLine(_brushes["transparentWhite"], new Line(x, y + (Height / 4) * 2, x + BAR_WIDTH, y + (Height / 4) * 2), 1);
+                gfx.DrawText(_fonts["consolas"], 11, _brushes["white"], x + 30, y + (Height / 4)*2, "50%");
+
+                gfx.DrawLine(_brushes["transparentWhite"], new Line(x, y + (Height / 4) * 3, x + BAR_WIDTH, y + (Height / 4) * 3), 1);
+                gfx.DrawText(_fonts["consolas"], 11, _brushes["white"], x + 30, y + (Height / 4)*3, "25%");
             };
 
             return drawAction;
         }
 
-        public Action<Graphics> DrawPercentageText(int x, int y, int width, int height)
+        public Action<Graphics> DrawPercentageBar(int x, int y, IBrush color, Func<float> GetValue)
         {
-            height -= 10;
-
-            Action<Graphics> drawAction = (gfx) =>
+            Action<Graphics> drawAction = (gfx) => 
             {
-                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, height / 2 - (height / 4) - 5), "75%");
-                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, height / 2), "50%");
-                gfx.DrawText(_fonts["consolas"], 10, _brushes["transparentWhite"], new Point(x + width + 5, height / 2 + (height / 4)), "25%");
+                Rectangle filling = Rectangle.Create(x, y + (Height * (1f - GetValue())), BAR_WIDTH, Height);
+                Rectangle container = Rectangle.Create(x - 1, y + 1, BAR_WIDTH + 2, Height - 2);
+
+                gfx.DrawBox2D(_brushes["transparentBlack"], color, filling, 0);
+
+                if (IRData.iRacingData?.Brake > 0.8f)
+                    gfx.DrawBox2D(_brushes["purple"], _brushes["transparent"], container, 4);
+                else if (IRData.iRacingData?.Brake > 0.65f)
+                    gfx.DrawBox2D(_brushes["violet"], _brushes["transparent"], container, 4);
+                else if (IRData.iRacingData?.Brake > 0.4f)
+                    gfx.DrawBox2D(_brushes["indigo"], _brushes["transparent"], container, 4);
+                else if (IRData.iRacingData?.Brake > 0.2f)
+                    gfx.DrawBox2D(_brushes["softBlue"], _brushes["transparent"], container, 4);
+                else if (IRData.iRacingData?.Brake > 0.05f)
+                    gfx.DrawBox2D(_brushes["softGreen"], _brushes["transparent"], container, 4);
+                else
+                    gfx.DrawBox2D(_brushes["transparentBlack"], _brushes["transparent"], container, 2);
             };
 
             return drawAction;
         }
 
-        public Action<Graphics> DrawPercentageBar(int x, int y, int width, int height, IBrush color, Func<float> getPercentage)
+        public override void RefreshData()
         {
-            Action<Graphics> drawAction = (gfx) => {
-                // Dimensions of inner container that changes height depending on the percentage
-                Rectangle filling = Rectangle.Create(/* Top Left X */ x, /* Top Left Y */ y, width, -((height - Margin) * getPercentage()));
-                // Container dimensions
-                Rectangle container = Rectangle.Create(/* Top Left X */ x, /* Top Left Y */ y, width, -(height - Margin));
-
-                if (getPercentage() > 0)
-                {
-                    gfx.DrawBox2D(_brushes["black"], color, filling, 2);
-                }
-
-
-                gfx.DrawRectangle(_brushes["black"], container, 2);
-            };
-
-            return drawAction;
         }
     }
 }
