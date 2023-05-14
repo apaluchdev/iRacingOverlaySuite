@@ -7,25 +7,25 @@ using System;
 
 namespace iRacingOverlaySuite
 {
-    public class IRData
+    public static class IRData
     {
         #region Public
 
-        public bool IsConnected { get; private set; }
+        public static bool IsConnected { get; private set; }
 
-        public DataModel iRacingData;
+        public static DataModel iRacingData { get; private set; }
+
+        public static IRacingSessionModel? Session { get; private set; }
 
         #endregion
 
         #region Private
 
-        private IRacingSDK _sdk;
-
-        private IRacingSessionModel? _session = null;
+        private static IRacingSDK _sdk;
 
         #endregion
 
-        public IRData()
+        static IRData()
         {
             _sdk = new IRacingSDK();
             iRacingData = new IRacingDataModel().Data;
@@ -35,17 +35,17 @@ namespace iRacingOverlaySuite
 
         }
 
-        private void Sdk_OnDisconnected()
+        private static void Sdk_OnDisconnected()
         {
             IsConnected = false;
         }
 
-        private void Sdk_OnConnected()
+        private static void Sdk_OnConnected()
         {
             IsConnected = true;
         }
 
-        public void UpdateData()
+        public static void UpdateData()
         {
             try
             {
@@ -64,7 +64,7 @@ namespace iRacingOverlaySuite
                     if (newUpdate != lastUpdate)
                     {
                         lastUpdate = newUpdate;
-                        _session = _sdk.GetSerializedSessionInfo();
+                        Session = _sdk.GetSerializedSessionInfo();
                     }
                 }
             }
