@@ -10,8 +10,6 @@ namespace iRacingOverlaySuite.Overlays
     {
         private OverlayCanvas _canvas;
 
-        const int BAR_WIDTH = 19;
-
         public ProximityOverlay(int x, int y)
         {
             var _overlayParams = new OverlayParams(0, 0, 600, 100, Location.Center);
@@ -43,7 +41,7 @@ namespace iRacingOverlaySuite.Overlays
 
         private void DrawCarProximityIndicator(Graphics gfx)
         {
-            var carProximity = IRData.iRacingData?.CarLeftRight ?? (int)CarLeftRight.LRCarLeft;
+            var carProximity = IRData.iRacingData?.CarLeftRight ?? (int) CarLeftRight.LRCarLeft;
 
             switch ((CarLeftRight)carProximity)
             {
@@ -79,9 +77,9 @@ namespace iRacingOverlaySuite.Overlays
 
         private void DrawLeftIndicator(Graphics gfx)
         {
-            var pointA = new Point(_canvas.CenterX - (_canvas.Width / 2.5f), _canvas.Y1 + 10);
-            var pointB = new Point(_canvas.CenterX - (_canvas.Width / 2.5f), _canvas.Y2 - 10);
-            var pointC = new Point(_canvas.X1 + 5, _canvas.CenterY);
+            var pointA = new Point(_canvas.CenterX - (_canvas.Width / 2.5f), 10);
+            var pointB = new Point(_canvas.CenterX - (_canvas.Width / 2.5f), _canvas.Height - 10);
+            var pointC = new Point(5, _canvas.CenterY);
 
             var leftTriangle = new Triangle(pointA, pointB, pointC);
             gfx.DrawTriangle(_canvas.Brushes["yellow"], leftTriangle, 3f);
@@ -89,9 +87,9 @@ namespace iRacingOverlaySuite.Overlays
 
         private void DrawRightIndicator(Graphics gfx)
         {
-            var pointA = new Point(_canvas.CenterX + (_canvas.Width / 2.5f), _canvas.Y1 + 10);
-            var pointB = new Point(_canvas.CenterX + (_canvas.Width / 2.5f), _canvas.Y2 - 10);
-            var pointC = new Point(_canvas.X2 - 5, _canvas.CenterY);
+            var pointA = new Point(_canvas.CenterX + (_canvas.Width / 2.5f), 10);
+            var pointB = new Point(_canvas.CenterX + (_canvas.Width / 2.5f), _canvas.Height - 10);
+            var pointC = new Point(_canvas.Width - 5, _canvas.CenterY);
 
             var rightTriangle = new Triangle(pointA, pointB, pointC);
             gfx.DrawTriangle(_canvas.Brushes["yellow"], rightTriangle, 3f);
