@@ -32,7 +32,7 @@ namespace iRacingOverlaySuite.Overlays
         {
             var leaderLastTime = GetLeaderLastLapTime();
 
-            _leaderLastTime = leaderLastTime.Item1;
+            _leaderLastTime = leaderLastTime;
 
             var opponentInfo = new StringBuilder();
             opponentInfo.Append($"Leader Time: {FormatTime(_leaderLastTime)}");
