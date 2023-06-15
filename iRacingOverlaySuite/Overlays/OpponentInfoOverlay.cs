@@ -17,11 +17,12 @@ namespace iRacingOverlaySuite.Overlays
         {
         }
 
-        public void SetupOverlay()
+        public override void SetupOverlay()
         {
             Action<Graphics> opponentInfoOverlayAction = new Action<Graphics>((gfx) =>
             {
                 gfx.DrawTextWithBackground(_canvas.Fonts["calibri"], 22, _canvas.Brushes["white"], _canvas.Brushes["black"], 0, 0, GetOpponentInfo());
+                gfx.DrawTextWithBackground(_canvas.Fonts["calibri"], 22, _canvas.Brushes["white"], _canvas.Brushes["black"], 0, 25, GetClosestCarBehindDistance().ToString());
             });
 
             _canvas.AddDrawAction(opponentInfoOverlayAction);
@@ -39,21 +40,21 @@ namespace iRacingOverlaySuite.Overlays
             return opponentInfo.ToString();
         }
 
-        private Tuple<TimeSpan, int> GetLeaderLastLapTime()
+        private TimeSpan GetLeaderLastLapTime()
         {
             if (IRData.iRacingData?.Cars != null)
             {
                 var myClass = IRData.iRacingData.Cars[0].CarIdxClass;
                 foreach (var car in IRData.iRacingData.Cars)
                 {
-                    if (car.CarIdxClassPosition == 1 && car.CarIdxClass == myClass)
+                    if (car.CarIdxClassPosition == 1 /* Not sure if iRacing counts positions from 0 or 1... */ && car.CarIdxClass == myClass)
                     {
-                        return new Tuple<TimeSpan, int>(TimeSpan.FromSeconds(car.CarIdxLastLapTime), car.CarIdx);
+                        return TimeSpan.FromSeconds(car.CarIdxLastLapTime);
                     }
                 }
             }
 
-            return new Tuple<TimeSpan, int>(TimeSpan.Zero, 0);
+            return TimeSpan.Zero;
         }
 
         private float GetClosestCarBehindDistance()
