@@ -4,103 +4,70 @@ using System;
 
 namespace iRacingOverlaySuite.Overlays
 {
-    internal class InputDisplayOverlay : IOverlayDrawer
+    internal class InputDisplayOverlay : iRacingOverlay, IOverlayDrawer
     {
-        private OverlayCanvas _canvas;
+        public Rectangle BrakeBar;
 
-        SolidBrush? brakeColor = null;
+        const int BRAKE_SEGMENTS = 5;
 
-        private bool _drawMarker = false;
-
-        public InputDisplayOverlay(int x, int y)
+        public InputDisplayOverlay(int width, int height, Location location = Location.Center, int x = 0, int y = 0) : base(x, y, width, height, location)
         {
-            var _overlayParams = new OverlayParams(225, 0, 150, 500, Location.Center);
-
-            _canvas = new OverlayCanvas(_overlayParams, this);
-
-            _canvas.DrawGrid = true;
-            _canvas.Run();
         }
 
-        public void DrawOverlay()
-        {
-            var brake = IRData.iRacingData?.Brake ?? 0.20f;
-            var throttle = IRData.iRacingData?.Throttle ?? 0;
+        /// <summary>
+        /// Setup the action that will draw the brake bar onto the canvas
+        /// </summary>
+        public override void SetupOverlay()
+        {       
+            BrakeBar = new Rectangle(0 + (_canvas.Width / 2.3f), _canvas.Height * 0.25f, _canvas.Width - (_canvas.Width / 2.3f), _canvas.Height * 0.75f + _canvas.Height * 0.20f);
 
-            var brush = _canvas.Brushes;
-            var bar = new Rectangle(0 + (_canvas.Width / 2.3f), _canvas.Height * 0.25f, _canvas.Width - (_canvas.Width / 2.3f), _canvas.Height * 0.75f + _canvas.Height * 0.20f);
+            Action<Graphics> brakeOverlayAction = new Action<Graphics>((gfx) =>
+            {   
+                gfx.DrawHorizontalProgressBar(brushes["black"], brushes["green"], BrakeBar, 2, GetThrottle());
+                gfx.DrawHorizontalProgressBar(brushes["black"], GetBrakeColor(), BrakeBar, 2, GetBrake());
 
-            var previousBrakeColor = brakeColor;
+                DrawPercentageText(gfx);
+            });
 
-            // When steering exceeds 5 degrees (0.08 rad), use orange to indicate trail braking should be done.
-            brakeColor = Math.Abs(IRData.iRacingData?.SteeringWheelAngle ?? 0f) < Math.Abs(0.08) ? brush["red"] : brush["orange"];
-
-            Action<Graphics> drawMarker = null;
-
-            var brakeValue = brake;
-            // Marks the location of braking transitioning from red -> orange
-            if ((previousBrakeColor == brush["red"] && brakeColor == brush["orange"]) || _drawMarker)
-            {
-                _drawMarker = true;
-                drawMarker = new Action<Graphics>((gfx) =>
-                {
-                    gfx.DrawHorizontalProgressBar(brush["black"], brakeColor, bar, 2, (int)(brakeValue * 100));
-                    DrawPercentageText(gfx, bar);
-                });
-            }
-            else if (brake < 0.05)
-            {
-                _drawMarker = false;
-            }
-
-            _canvas.AddDrawActions(
-                new List<Action<Graphics>>()
-                {
-                    (gfx) =>
-                    {
-                        gfx.DrawHorizontalProgressBar(brush["black"], brakeColor, bar, 2,(int) (brake*100));
-                        DrawPercentageText(gfx, bar);
-                        //DrawSteeringInput(gfx, (int) (_canvas.Width / 2.2f), _canvas.Height * 0.20f);  
-                    }
-                }        
-            );
+            _canvas.AddDrawAction(brakeOverlayAction);
         }
 
-        private void DrawPercentageText(Graphics gfx, Rectangle bar)
+        /// <summary>
+        /// Draws the divider lines that split up the brake bar
+        /// </summary>
+        /// <param name="gfx"></param>
+        private void DrawPercentageText(Graphics gfx)
         {
-            var brush = _canvas.Brushes;
-            var fonts = _canvas.Fonts;
-
-            const int segments = 5;
-
-            var y = bar.Bottom;
+            var y = BrakeBar.Bottom;
             var pctValue = 0;
             var fontYOffset = 6;
             var fontXOffset = 5;
 
-            for (int i = 0; i < segments; i++)
+            for (int i = 0; i < BRAKE_SEGMENTS; i++)
             {
                 if (i != 0) // Skip drawing the first line
-                    gfx.DrawLine(brush["white"], new Line(bar.Left, y, bar.Right, y), 1);
+                    gfx.DrawLine(brushes["white"], new Line(BrakeBar.Left, y, BrakeBar.Right, y), 1);
                 
-                gfx.DrawText(fonts["consolas"], 11, brush["red"], bar.Right + fontXOffset, y - fontYOffset, $"{pctValue}%");
+                gfx.DrawText(fonts["calibri"], 11, brushes["red"], BrakeBar.Right + fontXOffset, y - fontYOffset, $"{pctValue}%");
                 
-                y -= bar.Height / segments;
-                pctValue += 100 / segments;
+                y -= BrakeBar.Height / BRAKE_SEGMENTS;
+                pctValue += 100 / BRAKE_SEGMENTS;
             }
         }
 
-        //private void DrawSteeringInput(Graphics gfx, int x, float y)
-        //{
-        //    var brush = _canvas.Brushes;
+        private float GetBrake()
+        {
+            return IRData.iRacingData?.Brake ?? (float)Math.Abs(Math.Cos(DateTime.Now.Second))*100;
+        }
 
-        //    double radius = 50;
+        private float GetThrottle()
+        {
+            return IRData.iRacingData?.Throttle ?? (float)Math.Abs(Math.Sin(DateTime.Now.Second))*100;
+        }
 
-        //    // Calculate the x and y coordinates
-        //    var xPoint = (float) (radius * Math.Cos(-IRData.iRacingData?.SteeringWheelAngle - (Math.PI / 2) ?? -(Math.PI / 2)));
-        //    var yPoint = (float) (radius * Math.Sin(-IRData.iRacingData?.SteeringWheelAngle - (Math.PI / 2) ?? -(Math.PI / 2)));
-
-        //    gfx.DrawLine(brush["gray"], x + 0 + (BAR_WIDTH / 2), y + 0, x + xPoint + (BAR_WIDTH / 2), y + yPoint, 4);
-        //}
+        private SolidBrush GetBrakeColor()
+        {
+            return Math.Abs(IRData.iRacingData?.SteeringWheelAngle ?? 0f) < Math.Abs(0.08) ? brushes["red"] : brushes["orange"];
+        }
     }
 }

@@ -6,41 +6,25 @@ using irsdkSharp.Serialization.Enums.Fastest;
 
 namespace iRacingOverlaySuite.Overlays
 {
-    internal class ProximityOverlay : IOverlayDrawer
+    internal class ProximityOverlay : iRacingOverlay, IOverlayDrawer
     {
-        private OverlayCanvas _canvas;
-
-        public ProximityOverlay(int x, int y)
+        public ProximityOverlay(int width, int height, Location location = Location.Center, int x = 0, int y = 0) : base (x, y, width, height, location)
         {
-            var _overlayParams = new OverlayParams(0, 0, 600, 100, Location.Center);
-
-            _canvas = new OverlayCanvas(_overlayParams, this);
-
-            _canvas.DrawGrid = true;
-            _canvas.Run();
         }
 
-        public void DrawOverlay()
+        public override void SetupOverlay()
         {
-            var brush = _canvas.Brushes;
+            Action<Graphics> proximityOverlayAction = new Action<Graphics>((gfx) =>
+            {
+                DrawCarProximityIndicator(gfx);
+            });
 
-            // When steering exceeds 5 degrees (0.08 rad), use orange to indicate trail braking should be done.
-            var brakeColor = Math.Abs(IRData.iRacingData?.SteeringWheelAngle ?? 0f) < Math.Abs(0.08) ? brush["red"] : brush["orange"];
-
-            _canvas.AddDrawActions(
-                new List<Action<Graphics>>()
-                {
-                    (gfx) =>
-                    {
-                        DrawCarProximityIndicator(gfx);
-                    }
-                }
-            );
+            _canvas.AddDrawAction(proximityOverlayAction);
         }
 
         private void DrawCarProximityIndicator(Graphics gfx)
         {
-            var carProximity = IRData.iRacingData?.CarLeftRight ?? (int) CarLeftRight.LRCarLeft;
+            var carProximity = IRData.iRacingData?.CarLeftRight ?? 6;// (int) Math.Round(Math.Abs(Math.Sin(DateTime.Now.Second) * 6));// (int) CarLeftRight.LRCarLeft;
 
             switch ((CarLeftRight)carProximity)
             {
@@ -58,11 +42,14 @@ namespace iRacingOverlaySuite.Overlays
                     break;
                 case (CarLeftRight.LR2CarsLeft):
                     DrawLeftIndicator(gfx);
-                    DrawLeftIndicator(gfx);
+                    DrawLeftIndicator(gfx, 25);
                     break;
                 case (CarLeftRight.LR2CarsRight):
                     DrawRightIndicator(gfx);
-                    DrawRightIndicator(gfx);
+                    DrawRightIndicator(gfx, -25);
+                    break;
+                case CarLeftRight.LRClear:
+                    DrawClearIndicator(gfx);
                     break;
                 default:
                     break;
@@ -74,21 +61,29 @@ namespace iRacingOverlaySuite.Overlays
             gfx.DrawCrosshair(_canvas.Brushes["blue"], _canvas.CenterX, _canvas.CenterY, 25f, 2f, CrosshairStyle.Plus);
         }
 
-        private void DrawLeftIndicator(Graphics gfx)
+        private void DrawLeftIndicator(Graphics gfx, int offsetX = 0)
         {
             var pointA = new Point(_canvas.CenterX - (_canvas.Width / 2.5f), 10);
             var pointB = new Point(_canvas.CenterX - (_canvas.Width / 2.5f), _canvas.Height - 10);
             var pointC = new Point(5, _canvas.CenterY);
 
+            pointA.X = pointA.X + offsetX;
+            pointB.X = pointB.X + offsetX;
+            pointC.X = pointC.X + offsetX;
+
             var leftTriangle = new Triangle(pointA, pointB, pointC);
             gfx.DrawTriangle(_canvas.Brushes["yellow"], leftTriangle, 3f);
         }
 
-        private void DrawRightIndicator(Graphics gfx)
+        private void DrawRightIndicator(Graphics gfx, int offsetX = 0)
         {
             var pointA = new Point(_canvas.CenterX + (_canvas.Width / 2.5f), 10);
             var pointB = new Point(_canvas.CenterX + (_canvas.Width / 2.5f), _canvas.Height - 10);
             var pointC = new Point(_canvas.Width - 5, _canvas.CenterY);
+
+            pointA.X = pointA.X + offsetX;
+            pointB.X = pointB.X + offsetX;
+            pointC.X = pointC.X + offsetX;
 
             var rightTriangle = new Triangle(pointA, pointB, pointC);
             gfx.DrawTriangle(_canvas.Brushes["yellow"], rightTriangle, 3f);

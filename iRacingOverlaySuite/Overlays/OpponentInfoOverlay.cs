@@ -5,62 +5,38 @@ using System.Windows.Media.Media3D;
 using System.Windows.Media;
 using System.Text;
 using System.Windows.Navigation;
+using System.Windows.Controls;
 
 namespace iRacingOverlaySuite.Overlays
 {
-    internal class ToastOverlay : IOverlayDrawer
+    internal class OpponentInfoOverlay : iRacingOverlay, IOverlayDrawer
     {
-        private OverlayCanvas _canvas;
-
         private TimeSpan _leaderLastTime = TimeSpan.FromSeconds(0);
-        private int _leaderCarNumber = 0;
 
-        public ToastOverlay(int x, int y)
+        public OpponentInfoOverlay(int width, int height, Location location = Location.TopMiddle, int x = 0, int y = 0) : base(x, y, width, height, location)
         {
-            var _overlayParams = new OverlayParams(0, 0, 400, 100, Location.TopMiddle);
-
-            _canvas = new OverlayCanvas(_overlayParams, this);
-
-            _canvas.DrawGrid = true;
-            _canvas.Run();
         }
 
-        public void DrawOverlay()
+        public void SetupOverlay()
+        {
+            Action<Graphics> opponentInfoOverlayAction = new Action<Graphics>((gfx) =>
+            {
+                gfx.DrawTextWithBackground(_canvas.Fonts["calibri"], 22, _canvas.Brushes["white"], _canvas.Brushes["black"], 0, 0, GetOpponentInfo());
+            });
+
+            _canvas.AddDrawAction(opponentInfoOverlayAction);
+        }
+
+        private string GetOpponentInfo()
         {
             var leaderLastTime = GetLeaderLastLapTime();
 
             _leaderLastTime = leaderLastTime.Item1;
-            _leaderCarNumber = leaderLastTime.Item2;
 
-            var displayString = new StringBuilder();
-            displayString.Append($"Leader Last: {FormatTime(_leaderLastTime)}");
+            var opponentInfo = new StringBuilder();
+            opponentInfo.Append($"Leader Time: {FormatTime(_leaderLastTime)}");
 
-            _canvas.AddDrawActions(
-                new List<Action<Graphics>>()
-                {
-                    (gfx) =>
-                    {
-                        gfx.DrawTextWithBackground(_canvas.Fonts["courier"], 22, _canvas.Brushes["white"], _canvas.Brushes["black"], 0, 0, displayString.ToString());
-                        
-                        if (GetClosestCarBehindDistance() < 50)
-                        {
-                            gfx.DrawTextWithBackground(_canvas.Fonts["courier"], 22, _canvas.Brushes["red"], _canvas.Brushes["black"], 0, 25, $"Behind: {GetClosestCarBehindDistance()}m");
-                        }
-                        else if (GetClosestCarBehindDistance() < 100)
-                        {
-                            gfx.DrawTextWithBackground(_canvas.Fonts["courier"], 22, _canvas.Brushes["orange"], _canvas.Brushes["black"], 0, 25, $"Behind: {GetClosestCarBehindDistance()}m");
-                        }
-                        else if (GetClosestCarBehindDistance() < 500)
-                        {
-                            gfx.DrawTextWithBackground(_canvas.Fonts["courier"], 22, _canvas.Brushes["yellow"], _canvas.Brushes["black"], 0, 25, $"Behind: {GetClosestCarBehindDistance()}m");
-                        }
-                        else
-                        {
-                            gfx.DrawTextWithBackground(_canvas.Fonts["courier"], 22, _canvas.Brushes["white"], _canvas.Brushes["black"], 0, 25, $"Behind: {GetClosestCarBehindDistance()}m");
-                        }
-                    }
-                }
-            );
+            return opponentInfo.ToString();
         }
 
         private Tuple<TimeSpan, int> GetLeaderLastLapTime()
@@ -100,6 +76,11 @@ namespace iRacingOverlaySuite.Overlays
             return closestCar;
         }
 
+        /// <summary>
+        /// Returns a TimeSpan in a format suitable for racing measurements
+        /// </summary>
+        /// <param name="raceTime"></param>
+        /// <returns></returns>
         public string FormatTime(TimeSpan raceTime)
         {
             string formattedTime = string.Format("{0}:{1:D2}.{2:D1}{3:D2}",

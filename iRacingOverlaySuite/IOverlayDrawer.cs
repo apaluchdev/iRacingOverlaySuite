@@ -10,6 +10,6 @@ namespace iRacingOverlaySuite
 {
     public interface IOverlayDrawer
     {
-        void DrawOverlay();
+        void SetupOverlay();
     }
 }

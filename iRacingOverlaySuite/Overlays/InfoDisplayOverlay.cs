@@ -5,55 +5,43 @@ using System.Windows.Media.Media3D;
 
 namespace iRacingOverlaySuite.Overlays
 {
-    internal class InfoDisplayOverlay : IOverlayDrawer
+    internal class InfoDisplayOverlay : iRacingOverlay, IOverlayDrawer
     {
-        private OverlayCanvas _canvas;
-
-        private float _trackTemp = -99f;
-
-        public InfoDisplayOverlay(int x, int y)
+        public InfoDisplayOverlay(int width, int height, Location location = Location.TopLeft, int x = 0, int y = 0) : base (x, y, width, height, location)
         {
-            var _overlayParams = new OverlayParams(0, 0, 300, 400, Location.TopLeft);
-
-            _canvas = new OverlayCanvas(_overlayParams, this);
-
-            _canvas.DrawGrid = true;
-            _canvas.Run();
         }
 
-        public void DrawOverlay()
+        public void SetupOverlay()
         {
-            string trackDelta = String.Empty;
+            Action<Graphics> infoDisplayOverlayAction = new Action<Graphics>((gfx) =>
+            {
+                gfx.DrawTextWithBackground(fonts["calibri"], 22, GetTrackTemperatureColor(), brushes["black"], 0, 0, $"Track Temperature: {GetTrackTemperature()}°C");
+            });
 
-            if (_trackTemp != -99f)
-                trackDelta = _trackTemp < (IRData.iRacingData?.TrackTemp ?? -99f) ? "↑" : "↓";
+            _canvas.AddDrawAction(infoDisplayOverlayAction);
+        }
 
-            _trackTemp = IRData.iRacingData?.TrackTemp ?? -99f;
-            var brush = _canvas.Brushes;
-            var fonts = _canvas.Fonts;
+        private float GetTrackTemperature()
+        {
+            return IRData.iRacingData?.TrackTemp ?? (float)Math.Abs(Math.Sin(DateTime.Now.Second)*50);
+        }
 
-            var trackTempColor = brush["white"];
+        private SolidBrush GetTrackTemperatureColor()
+        {
+            var temp = GetTrackTemperature();
 
-            if (_trackTemp > 50f)
-                trackTempColor = brush["red"];
-            else if (_trackTemp > 40f)
-                trackTempColor = brush["orange"];
-            else if (_trackTemp > 30f)
-                trackTempColor = brush["yellow"];
-            else if (_trackTemp > 20f)
-                trackTempColor = brush["green"];
-            else if (_trackTemp > -10f)
-                trackTempColor = brush["aqua"];
+            if (temp > 50f)
+                return brushes["red"];
+            else if (temp > 40f)
+                return brushes["orange"];
+            else if (temp > 30f)
+                return brushes["yellow"];
+            else if (temp > 20f)
+                return brushes["green"];
+            else if (temp > -10f)
+                return brushes["aqua"];
 
-            _canvas.AddDrawActions(
-                new List<Action<Graphics>>()
-                {
-                    (gfx) =>
-                    {
-                        gfx.DrawTextWithBackground(fonts["calibri"], 22, trackTempColor, brush["black"], 0, 0, $"Track Temperature: {_trackTemp}°C {trackDelta}");
-                    }
-                }        
-            );
+            return brushes["white"];
         }
     }
 }
