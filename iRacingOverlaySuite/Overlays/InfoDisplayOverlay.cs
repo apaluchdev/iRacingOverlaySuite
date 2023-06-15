@@ -9,13 +9,11 @@ namespace iRacingOverlaySuite.Overlays
     {
         private OverlayCanvas _canvas;
 
-        const int BAR_WIDTH = 19;
-
         private float _trackTemp = -99f;
 
         public InfoDisplayOverlay(int x, int y)
         {
-            var _overlayParams = new OverlayParams(0, 0, 200, 400, Location.TopLeft);
+            var _overlayParams = new OverlayParams(0, 0, 300, 400, Location.TopLeft);
 
             _canvas = new OverlayCanvas(_overlayParams, this);
 
@@ -31,7 +29,6 @@ namespace iRacingOverlaySuite.Overlays
                 trackDelta = _trackTemp < (IRData.iRacingData?.TrackTemp ?? -99f) ? "↑" : "↓";
 
             _trackTemp = IRData.iRacingData?.TrackTemp ?? -99f;
-
             var brush = _canvas.Brushes;
             var fonts = _canvas.Fonts;
 
@@ -53,7 +50,7 @@ namespace iRacingOverlaySuite.Overlays
                 {
                     (gfx) =>
                     {
-                        gfx.DrawTextWithBackground(fonts["consolas"], 16, trackTempColor, brush["transparentGray"], 0, 0, $"TRACK TEMP: {_trackTemp}°C {trackDelta}");
+                        gfx.DrawTextWithBackground(fonts["calibri"], 22, trackTempColor, brush["black"], 0, 0, $"Track Temperature: {_trackTemp}°C {trackDelta}");
                     }
                 }        
             );

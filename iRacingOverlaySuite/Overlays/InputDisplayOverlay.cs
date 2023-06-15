@@ -1,7 +1,6 @@
 ﻿using GameOverlay.Drawing;
 using System.Collections.Generic;
 using System;
-using System.Windows.Media.Media3D;
 
 namespace iRacingOverlaySuite.Overlays
 {
@@ -9,11 +8,13 @@ namespace iRacingOverlaySuite.Overlays
     {
         private OverlayCanvas _canvas;
 
-        const int BAR_WIDTH = 19;
+        SolidBrush? brakeColor = null;
+
+        private bool _drawMarker = false;
 
         public InputDisplayOverlay(int x, int y)
         {
-            var _overlayParams = new OverlayParams(225, 0, 200, 400, Location.Center);
+            var _overlayParams = new OverlayParams(225, 0, 150, 500, Location.Center);
 
             _canvas = new OverlayCanvas(_overlayParams, this);
 
@@ -29,8 +30,28 @@ namespace iRacingOverlaySuite.Overlays
             var brush = _canvas.Brushes;
             var bar = new Rectangle(0 + (_canvas.Width / 2.3f), _canvas.Height * 0.25f, _canvas.Width - (_canvas.Width / 2.3f), _canvas.Height * 0.75f + _canvas.Height * 0.20f);
 
+            var previousBrakeColor = brakeColor;
+
             // When steering exceeds 5 degrees (0.08 rad), use orange to indicate trail braking should be done.
-            var brakeColor = Math.Abs(IRData.iRacingData?.SteeringWheelAngle ?? 0f) < Math.Abs(0.08) ? brush["red"] : brush["orange"];
+            brakeColor = Math.Abs(IRData.iRacingData?.SteeringWheelAngle ?? 0f) < Math.Abs(0.08) ? brush["red"] : brush["orange"];
+
+            Action<Graphics> drawMarker = null;
+
+            var brakeValue = brake;
+            // Marks the location of braking transitioning from red -> orange
+            if ((previousBrakeColor == brush["red"] && brakeColor == brush["orange"]) || _drawMarker)
+            {
+                _drawMarker = true;
+                drawMarker = new Action<Graphics>((gfx) =>
+                {
+                    gfx.DrawHorizontalProgressBar(brush["black"], brakeColor, bar, 2, (int)(brakeValue * 100));
+                    DrawPercentageText(gfx, bar);
+                });
+            }
+            else if (brake < 0.05)
+            {
+                _drawMarker = false;
+            }
 
             _canvas.AddDrawActions(
                 new List<Action<Graphics>>()
@@ -39,7 +60,7 @@ namespace iRacingOverlaySuite.Overlays
                     {
                         gfx.DrawHorizontalProgressBar(brush["black"], brakeColor, bar, 2,(int) (brake*100));
                         DrawPercentageText(gfx, bar);
-                        //DrawSteeringInput(gfx, (int) (_canvas.Width / 2.2f), _canvas.Height * 0.20f);
+                        //DrawSteeringInput(gfx, (int) (_canvas.Width / 2.2f), _canvas.Height * 0.20f);  
                     }
                 }        
             );
@@ -64,22 +85,22 @@ namespace iRacingOverlaySuite.Overlays
                 
                 gfx.DrawText(fonts["consolas"], 11, brush["red"], bar.Right + fontXOffset, y - fontYOffset, $"{pctValue}%");
                 
-                y -= bar.Height / 5f;
+                y -= bar.Height / segments;
                 pctValue += 100 / segments;
             }
         }
 
-        private void DrawSteeringInput(Graphics gfx, int x, float y)
-        {
-            var brush = _canvas.Brushes;
+        //private void DrawSteeringInput(Graphics gfx, int x, float y)
+        //{
+        //    var brush = _canvas.Brushes;
 
-            double radius = 50;
+        //    double radius = 50;
 
-            // Calculate the x and y coordinates
-            var xPoint = (float) (radius * Math.Cos(-IRData.iRacingData?.SteeringWheelAngle - (Math.PI / 2) ?? -(Math.PI / 2)));
-            var yPoint = (float) (radius * Math.Sin(-IRData.iRacingData?.SteeringWheelAngle - (Math.PI / 2) ?? -(Math.PI / 2)));
+        //    // Calculate the x and y coordinates
+        //    var xPoint = (float) (radius * Math.Cos(-IRData.iRacingData?.SteeringWheelAngle - (Math.PI / 2) ?? -(Math.PI / 2)));
+        //    var yPoint = (float) (radius * Math.Sin(-IRData.iRacingData?.SteeringWheelAngle - (Math.PI / 2) ?? -(Math.PI / 2)));
 
-            gfx.DrawLine(brush["gray"], x + 0 + (BAR_WIDTH / 2), y + 0, x + xPoint + (BAR_WIDTH / 2), y + yPoint, 4);
-        }
+        //    gfx.DrawLine(brush["gray"], x + 0 + (BAR_WIDTH / 2), y + 0, x + xPoint + (BAR_WIDTH / 2), y + yPoint, 4);
+        //}
     }
 }

@@ -15,6 +15,8 @@ namespace iRacingOverlaySuite
 
         public static DataModel iRacingData { get; private set; }
 
+        public static DataModel PreviousiRacingData { get; private set; }
+
         public static IRacingSessionModel? Session { get; private set; }
 
         #endregion
@@ -57,6 +59,8 @@ namespace iRacingOverlaySuite
                 // Check if we can find the sim
                 if (IsConnected /* Check if iRacing process is open as well */)
                 {
+                    PreviousiRacingData = iRacingData;
+
                     iRacingData = _sdk.GetSerializedData().Data;
                     
                     // Is the session info updated?

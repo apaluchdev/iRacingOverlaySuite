@@ -11,6 +11,7 @@ namespace iRacingOverlaySuite
     public enum Location
     {
         TopLeft,
+        TopMiddle,
         TopRight,
         BottomLeft,
         BottomRight,
@@ -83,6 +84,10 @@ namespace iRacingOverlaySuite
                 else if (_location == Location.TopLeft)
                     _window.Move(
                         _gameWindow.left,
+                        _gameWindow.top);
+                else if (_location == Location.TopMiddle)
+                    _window.Move(
+                        _gameWindow.left + (_gameWindow.width / 2) - Width / 2,
                         _gameWindow.top);
                 else
                     _window.Move(_gameWindow.left, _gameWindow.top);

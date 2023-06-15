@@ -22,7 +22,6 @@ namespace iRacingOverlaySuite.Overlays
 
         public void DrawOverlay()
         {
-
             var brush = _canvas.Brushes;
 
             // When steering exceeds 5 degrees (0.08 rad), use orange to indicate trail braking should be done.

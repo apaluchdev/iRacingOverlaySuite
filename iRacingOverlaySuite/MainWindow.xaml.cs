@@ -23,8 +23,9 @@ namespace iRacingOverlaySuite
         static void Begin()
         {
             Task.Run(() => new InputDisplayOverlay(0, 0));
-            Task.Run(() => new InfoDisplayOverlay(0, 0));
-            Task.Run(() => new ProximityOverlay(0, 0));
+            //Task.Run(() => new InfoDisplayOverlay(0, 0));
+            //Task.Run(() => new ProximityOverlay(0, 0));
+            Task.Run(() => new ToastOverlay(0, 0));
 
             Console.ReadLine();
         }
