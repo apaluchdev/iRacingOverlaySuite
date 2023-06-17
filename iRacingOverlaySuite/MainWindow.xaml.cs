@@ -23,7 +23,7 @@ namespace iRacingOverlaySuite
         static void Begin()
         {
             Task.Run(() => new InputDisplayOverlay(150, 500, Location.Center, 255));
-            //Task.Run(() => new InfoDisplayOverlay(300, 400));
+            Task.Run(() => new InfoDisplayOverlay(300, 400));
             Task.Run(() => new ProximityOverlay(600, 100));
             Task.Run(() => new OpponentInfoOverlay(400, 100));
 

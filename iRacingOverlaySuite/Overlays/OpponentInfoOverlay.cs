@@ -22,10 +22,29 @@ namespace iRacingOverlaySuite.Overlays
             Action<Graphics> opponentInfoOverlayAction = new Action<Graphics>((gfx) =>
             {
                 gfx.DrawTextWithBackground(_canvas.Fonts["calibri"], 22, _canvas.Brushes["white"], _canvas.Brushes["black"], 0, 0, GetOpponentInfo());
-                gfx.DrawTextWithBackground(_canvas.Fonts["calibri"], 22, _canvas.Brushes["white"], _canvas.Brushes["black"], 0, 25, GetClosestCarBehindDistance().ToString());
+                //gfx.DrawTextWithBackground(_canvas.Fonts["calibri"], 22, _canvas.Brushes["red"], _canvas.Brushes["black"], 0, 25, $"{GetClosestCarBehindDistance().ToString()}m");
+                gfx.DrawTextWithBackground(_canvas.Fonts["calibri"], 22, GetDeltaColor(GetDeltaTime()), _canvas.Brushes["black"], 0, 50, $"Delta: {GetDeltaTime()}");
+
             });
 
             _canvas.AddDrawAction(opponentInfoOverlayAction);
+        }
+
+        private float GetDeltaTime()
+        {
+            return IRData.iRacingData?.LapDeltaToSessionBestLap ?? 0;
+        }
+
+        private SolidBrush GetDeltaColor(float delta)
+        {
+            if (delta < 0)
+            {
+                return brushes["red"];
+            }
+            else
+            {
+                return brushes["green"];
+            }
         }
 
         private string GetOpponentInfo()
@@ -74,6 +93,10 @@ namespace iRacingOverlaySuite.Overlays
                 }
             }
 
+            if (!IRData.IsConnected)
+            {
+                return (float)Math.Abs(Math.Sin(DateTime.Now.Second / 30f) * 1000);
+            }
             return closestCar;
         }
 

@@ -15,7 +15,7 @@ namespace iRacingOverlaySuite.Overlays
         {
             Action<Graphics> infoDisplayOverlayAction = new Action<Graphics>((gfx) =>
             {
-                gfx.DrawTextWithBackground(fonts["calibri"], 22, GetTrackTemperatureColor(), brushes["black"], 0, 0, $"Track Temperature: {GetTrackTemperature()}°C");
+                gfx.DrawTextWithBackground(fonts["calibri"], 22, GetTrackTemperatureColor(), brushes["black"], 0, 0, $"Track Temperature: {GetTrackTemperature().ToString("0.0")}°C");
             });
 
             _canvas.AddDrawAction(infoDisplayOverlayAction);

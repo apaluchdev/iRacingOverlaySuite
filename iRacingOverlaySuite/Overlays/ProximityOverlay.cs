@@ -24,7 +24,7 @@ namespace iRacingOverlaySuite.Overlays
 
         private void DrawCarProximityIndicator(Graphics gfx)
         {
-            var carProximity = IRData.iRacingData?.CarLeftRight ?? 6;// (int) Math.Round(Math.Abs(Math.Sin(DateTime.Now.Second) * 6));// (int) CarLeftRight.LRCarLeft;
+            var carProximity = IRData.iRacingData?.CarLeftRight ?? (int) Math.Round(Math.Abs(Math.Sin(DateTime.Now.Second) * 6));// (int) CarLeftRight.LRCarLeft;
 
             switch ((CarLeftRight)carProximity)
             {

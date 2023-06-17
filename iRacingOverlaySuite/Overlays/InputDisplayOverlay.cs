@@ -26,6 +26,12 @@ namespace iRacingOverlaySuite.Overlays
                 gfx.DrawHorizontalProgressBar(brushes["black"], brushes["green"], BrakeBar, 2, GetThrottle());
                 gfx.DrawHorizontalProgressBar(brushes["black"], GetBrakeColor(), BrakeBar, 2, GetBrake());
 
+                // Overlap display
+                if (GetThrottle() > 0 && GetBrake() > 0)
+                {
+                    gfx.DrawHorizontalProgressBar(brushes["black"], brushes["yellow"], BrakeBar, 2, Math.Min(GetThrottle(), GetBrake()));
+                }
+
                 DrawPercentageText(gfx);
             });
 
@@ -57,12 +63,12 @@ namespace iRacingOverlaySuite.Overlays
 
         private float GetBrake()
         {
-            return IRData.iRacingData?.Brake ?? (float)Math.Abs(Math.Cos(DateTime.Now.Second))*100;
+            return IRData.iRacingData?.Brake * 100 ?? (float)Math.Abs(Math.Cos(DateTime.Now.Second))*100;
         }
 
         private float GetThrottle()
         {
-            return IRData.iRacingData?.Throttle ?? (float)Math.Abs(Math.Sin(DateTime.Now.Second))*100;
+            return IRData.iRacingData?.Throttle * 100 ?? (float)Math.Abs(Math.Sin(DateTime.Now.Second))*100;
         }
 
         private SolidBrush GetBrakeColor()

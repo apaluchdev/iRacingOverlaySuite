@@ -31,7 +31,6 @@ namespace iRacingOverlaySuite
         {
             _sdk = new IRacingSDK();
             iRacingData = new IRacingDataModel().Data;
-
             _sdk.OnConnected += Sdk_OnConnected;
             _sdk.OnDisconnected += Sdk_OnDisconnected;
 
